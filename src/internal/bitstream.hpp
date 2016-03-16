@@ -64,7 +64,8 @@ namespace deltadb {
         enum class error {
             none  = 0, // Nothing wrong
             redef = 1, // Trying to redefine buffer or type
-            size  = 2  // Buffer size would overflow
+            size  = 2, // Buffer size would overflow
+            mode  = 3  // Trying to call function in wrong mode
         };
 
         /** Underlying word type */
@@ -110,11 +111,11 @@ namespace deltadb {
         }
 
         /** Constuct bitstream with given size in writing mode. */
-        bitstream(const uint32_t size)
-          : m_error(error::none), m_mode(mode::io_writer), m_buffer(new word_t[size]), m_buffer_bytes(size),
-            m_buffer_bits(size * 8), m_pos(0), m_owns_buffer(true)
+        bitstream(const uint32_t bytes)
+          : m_error(error::none), m_mode(mode::io_writer), m_buffer(new word_t[bytes]), m_buffer_bytes(bytes),
+            m_buffer_bits(bytes * 8), m_pos(0), m_owns_buffer(true)
         {
-            if (!verify_size(size))
+            if (!verify_size(bytes))
                 m_error = error::size;
         }
 
@@ -210,6 +211,27 @@ namespace deltadb {
             m_buffer_bytes = size;
             m_buffer_bits = size*8;
             m_pos = 0;
+        }
+
+        /** Grow buffer by given number of bytes. Only valid when writing */
+        void grow(uint32_t bytes) {
+            if (!m_buffer || !m_owns_buffer) {
+                m_error = error::mode;
+                return;
+            }
+
+            const uint32_t nsize = m_buffer_bytes + m_buffer_bits;
+
+            if (!verify_size(nsize))
+                m_error = error::size;
+
+            m_buffer_bytes += bytes;
+            m_buffer_bits += bytes*8;
+
+            word_t* tmp = new word_t[nsize];
+            memcpy(tmp, m_buffer, m_buffer_bytes);
+            std::swap(tmp, m_buffer);
+            delete[] tmp;
         }
 
         /** Returns size in bits */
