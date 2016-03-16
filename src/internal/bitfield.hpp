@@ -25,37 +25,57 @@
 #include <cassert>
 #include <cstdint>
 
-#include "bitstream.hpp"
-
 namespace deltadb {
+    /** Bitfield */
     class bitfield {
     public:
-        bitfield() : m_size(0), m_storage(0) {};
+        /** Constructor */
+        bitfield() : m_storage(0), m_size(0) {};
 
-        bitfield(uint8_t size) : m_size(size), m_storage(0) {
+        /** Constructor, sets size */
+        bitfield(uint8_t size) : m_storage(0), m_size(size) {
             assert(size <= 64);
         }
 
+        /** Resize bitfield */
+        void resize(uint8_t size) {
+            assert(size <= 64);
+            m_size = size;
+        }
+
+        /** Return bit at index */
         bool at(uint8_t idx) {
             assert(idx < m_size);
             return m_storage & bit_at(idx);
         }
 
+        /** Set bit at index */
         void set(uint8_t idx, bool value) {
             assert(idx < m_size);
             m_storage |= bit_at(idx);
         }
 
-        constexpr uint64_t bit_at(uint8_t idx) {
-            return static_cast<uint64_t>(1) << static_cast<uint64_t>(idx);
+        /** Return bitfield size */
+        uint8_t size() {
+            return m_size;
         }
 
+        /** Return bytes require to store */
         constexpr uint8_t width() {
             return ((m_size + 7) & ~7) >> 3;
         }
+
+        /** Return all bits */
+        uint64_t storage() {
+            return m_storage;
+        }
     private:
-        uint8_t m_size;
         uint64_t m_storage;
+        uint8_t m_size;
+
+        constexpr uint64_t bit_at(uint8_t idx) {
+            return static_cast<uint64_t>(1) << static_cast<uint64_t>(idx);
+        }
     };
 }
 
