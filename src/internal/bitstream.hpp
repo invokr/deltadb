@@ -247,6 +247,11 @@ namespace deltadb {
             m_pos = position;
         }
 
+        /** Force stream to align on byte boundary */
+        void align() {
+            m_pos = ((m_pos >> 3) + 1) << 3;
+        }
+
     // Write only functions
     public:
         /**
