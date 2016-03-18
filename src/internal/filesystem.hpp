@@ -32,7 +32,7 @@
 
 namespace deltadb {
     /** Returns true if file exists and is not a directory */
-    bool file_exists(const char* path) {
+    inline bool file_exists(const char* path) {
         struct stat sb;
 
         if (stat(path, &sb) == -1) {
