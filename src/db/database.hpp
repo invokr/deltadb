@@ -46,6 +46,9 @@ namespace deltadb {
 
         /** Close database */
         void close();
+
+        /** Create a new table */
+        void create(const char* name);
     private:
         /** Database lock */
         filelock m_lock;

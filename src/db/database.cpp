@@ -71,4 +71,8 @@ namespace deltadb {
 
         m_lock.release();
     }
+
+    void database::create(const char* name) {
+        m_tables.push_back(new table(std::string(name)));
+    }
 }
