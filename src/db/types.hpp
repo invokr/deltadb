@@ -45,10 +45,10 @@ namespace deltadb {
         col_sparse   = (1 << 7)  /// Encode as list of types, not the types themself
     };
 
-    /** Type */
-    struct packed type {
+    /** Column type */
+    struct col {
         /** Returns type kind */
-        uint8_t kind() {
+        uint8_t type() {
             // First 4 bytes are type
             return static_cast<col_type>(m_data & 15);
         }
@@ -70,10 +70,11 @@ namespace deltadb {
 
         /** Type data */
         uint8_t m_data;
+        /** Name */
+        char m_name[32];
+        /** Commentary */
+        char m_comment[128];
     };
-
-    /// Sanity checks
-    static_assert(sizeof(type) == 1, "Type struct has invalid size");
 } /* deltadb */
 
 #endif /* DELTADB_DB_TYPES_HPP */
