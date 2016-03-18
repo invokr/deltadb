@@ -25,6 +25,9 @@
 #include "../internal/platform.hpp"
 
 namespace deltadb {
+    // forward decl
+    class bitstream;
+
     /** Different possible column types */
     enum col_type {
         col_int8   = 0, /// Encodes as 1 byte
@@ -76,10 +79,11 @@ namespace deltadb {
         char m_comment[128];
     };
 
-    /** Data stored in row */
-    struct row {
+    /** Read column from bitstream */
+    col* col_read(bitstream& b);
 
-    }
+    /** Write column from bitstream */
+    void col_write(bitstream& b, col* c);
 } /* deltadb */
 
 #endif /* DELTADB_DB_TABLE_COL_HPP */
