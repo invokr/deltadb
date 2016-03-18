@@ -305,6 +305,7 @@ namespace deltadb {
         void write_bytes(const char* data, uint32_t size) {
             if ((m_pos & 7) == 0) {
                 memcpy(&(reinterpret_cast<char*>(m_buffer)[m_pos >> 3]), data, size);
+                m_pos += 8 * size;
             } else {
                 for (uint32_t i = 0; i < size; ++i) {
                     write(8, data[i]);
@@ -338,6 +339,10 @@ namespace deltadb {
 
         /** Reads number of bytes into buffer */
         void read_bytes(uint32_t bytes, char* dest) {
+            assert(m_error == error::none);
+            assert(m_mode == mode::io_reader);
+            assert((m_pos>>3) + bytes < m_buffer_bytes);
+
             if ((m_pos & 7) == 0) {
                 memcpy(dest, &(reinterpret_cast<char*>(m_buffer)[m_pos >> 3]), bytes);
             } else {
@@ -345,6 +350,30 @@ namespace deltadb {
                     dest[i] = static_cast<int8_t>(read(8));
                 }
             }
+        }
+
+        /** Reads a 0-terminated string */
+        void read_string(uint32_t max_len, char* dest) {
+            for (uint32_t i = 0; i < max_len; ++i) {
+                dest[i] = static_cast<char>(read(8));
+
+                if (dest[i] == '\0')
+                    return;
+            }
+
+            dest[max_len-1] = '\0';
+            m_error = error::size;
+        }
+
+        /** Read boolean */
+        bool read_bool() {
+            assert(m_error == error::none);
+            assert(m_mode == mode::io_reader);
+            assert(m_pos+1 < m_buffer_bits);
+
+            bool ret = ( m_buffer[m_pos >> 5] >> ( m_pos & 31 ) ) & 1;
+            m_pos += 1;
+            return ret;
         }
     private:
         enum error m_error;
