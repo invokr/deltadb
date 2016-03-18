@@ -1,5 +1,5 @@
 /**
- * @file types.hpp
+ * @file table_col.hpp
  * @author Robin Dietrich <me (at) invokr (dot) org>
  *
  * @par License
@@ -19,8 +19,8 @@
  *   along with Foobar.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef DELTADB_DB_TYPES_HPP
-#define DELTADB_DB_TYPES_HPP
+#ifndef DELTADB_DB_TABLE_COL_HPP
+#define DELTADB_DB_TABLE_COL_HPP
 
 #include "../internal/platform.hpp"
 
@@ -45,7 +45,7 @@ namespace deltadb {
         col_sparse   = (1 << 7)  /// Encode as list of types, not the types themself
     };
 
-    /** Column type */
+    /** Single table column */
     struct col {
         /** Returns type kind */
         uint8_t type() {
@@ -75,6 +75,11 @@ namespace deltadb {
         /** Commentary */
         char m_comment[128];
     };
+
+    /** Data stored in row */
+    struct row {
+
+    }
 } /* deltadb */
 
-#endif /* DELTADB_DB_TYPES_HPP */
+#endif /* DELTADB_DB_TABLE_COL_HPP */
