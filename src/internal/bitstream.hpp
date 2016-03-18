@@ -234,6 +234,15 @@ namespace deltadb {
             delete[] tmp;
         }
 
+        /** Returns current len in bytes */
+        uint32_t width() {
+            if (m_pos & 7) {
+                return (m_pos>>3)+1;
+            } else {
+                return (m_pos>>3);
+            }
+        }
+
         /** Returns size in bits */
         uint32_t size() {
             return m_buffer_bits;
@@ -289,7 +298,7 @@ namespace deltadb {
             static constexpr uint8_t bitSize = 32;          // size of a single chunk in bits
             const uint32_t start = m_pos >> 5;              // current active chunk
             const uint32_t end   = (m_pos + bits - 1) >> 5; // next chunk in case of wrapping
-            const uint32_t shift = m_pos & masks[bitSize];  // shift amount
+            const uint32_t shift = m_pos & 31;              // shift amount
 
             if (start == end) {
                 m_buffer[start] = (m_buffer[start] & masks[shift]) | (data << shift);
@@ -324,7 +333,7 @@ namespace deltadb {
             static constexpr uint8_t bitSize = 32;          // size of a single chunk in bits
             const uint32_t start = m_pos >> 5;              // current active chunk
             const uint32_t end   = (m_pos + bits - 1) >> 5; // next chunk in case of wrapping
-            const uint32_t shift = m_pos & masks[bitSize];  // shift amount
+            const uint32_t shift = m_pos & 31;              // shift amount
 
             uint32_t ret; // return value
             if (start == end) {
