@@ -74,6 +74,11 @@ namespace deltadb {
     }
 
     void database::create(const char* name, col** t, uint32_t len) {
+        std::string frm = std::string(name)+".tbl";
+        if (file_exists(frm.c_str())) {
+            return; // @todo: error
+        }
+
         table* t2 = new table(std::string(name));
         t2->set_columns(t, len);
         m_tables.push_back(t2);
