@@ -1,6 +1,9 @@
 # Temp folders
 build
 
+# Generated files
+src/config.hpp
+
 # Compiled Object files
 *.slo
 *.lo
