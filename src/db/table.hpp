@@ -23,6 +23,7 @@
 #define DELTADB_DB_TABLE_HPP
 
 #include <string>
+#include <iostream>
 #include <cassert>
 
 #include "../internal/bitfield.hpp"
@@ -35,11 +36,14 @@ namespace deltadb {
     class table {
     public:
         /** Constructor */
-        table(std::string name) : m_name(name), m_types(0), m_size(0) {
-            // read frm data if possible
+        table(std::string name) : m_name(name), m_types(nullptr), m_size(0) {
+            assert(name.size() <= 32);
             auto frm = m_name+".tbl";
+
             if (file_exists(frm.c_str())) {
-                // read frm data
+                from_file();
+            } else {
+                create_empty();
             }
         }
 
@@ -49,6 +53,10 @@ namespace deltadb {
                 delete m_types[i];
             }
         }
+
+        bool open() {
+            return m_types != nullptr;
+        }
     private:
         /** Table name */
         std::string m_name;
@@ -56,6 +64,69 @@ namespace deltadb {
         col** m_types;
         /** Number of columns */
         uint8_t m_size;
+
+        /** Read column data from file */
+        void from_file() {
+            auto frm = m_name+".tbl";
+            char l_name[32] = {'\0'};
+
+            // read frm data
+            FILE* fp = fopen(frm.c_str(), "rb");
+            if (!fp) {
+                perror("Unable to open table");
+                return;
+            }
+
+            const size_t fstart = ftell(fp);
+            fseek(fp, 0, SEEK_END);
+            const size_t fend = ftell(fp) - fstart;
+            fseek(fp, 0, SEEK_SET);
+
+            char* frm_data = new char[fend+3];
+            fread(frm_data, 1, fend, fp);
+            fclose(fp);
+
+            bitstream b((bitstream::word_t*)frm_data, fend);
+
+            // verify table name
+            b.read_string(32, l_name);
+            if (strcmp(l_name, m_name.c_str()) != 0) {
+                std::cerr << "Error verifying table name for " << l_name << std::endl;
+                return;
+            }
+
+            // read fields
+            m_size = b.read(8);
+            for (uint8_t i = 0; i < m_size; ++i) {
+                m_types[i] = new col();
+                m_types[i]->m_data = b.read(8);
+                b.read_string(32, m_types[i]->m_name);
+
+                if (b.read_bool()) {
+                    b.read_string(128, m_types[i]->m_comment);
+                } else {
+                    m_types[i]->m_comment[0] = '\0';
+                }
+            }
+        }
+
+        /** Create an empty table */
+        void create_empty() {
+            auto frm = m_name+".tbl";
+            bitstream b(m_name.size() + 2);
+            b.write_bytes(&m_name[0], m_name.size());
+            b.write(8, 0);
+            b.write(8, 0);
+
+            FILE* fp = fopen(frm.c_str(), "wb");
+            if (!fp) {
+                perror("Unable to open table");
+                return;
+            }
+            
+            fwrite(b.buffer(), 1, m_name.size() + 2, fp);
+            fclose(fp);
+        }
     };
 } /* deltadb */
 
