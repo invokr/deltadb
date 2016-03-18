@@ -22,23 +22,15 @@
 #ifndef DELTADB_DB_DATATBASE_HPP
 #define DELTADB_DB_DATATBASE_HPP
 
-#include <string>
 #include <vector>
-
-#include <cstring>
-#include <cstdio>
-
-#include <dirent.h>
-#include <unistd.h>
-
-
 #include <boost/noncopyable.hpp>
 
-#include "../config.hpp"
 #include "../internal/filesystem.hpp"
-#include "table.hpp"
 
 namespace deltadb {
+    // forward decl
+    class table;
+
     class database : private boost::noncopyable {
     public:
         /** Constructor */
@@ -50,46 +42,10 @@ namespace deltadb {
         }
 
         /** Open the database */
-        bool open() {
-            // Set cwd to data directory
-            if (chdir(DELTADB_PATH_DATA) != 0) {
-                perror("Unable to set cwd");
-                return false;
-            }
-
-            // Aquire db lock
-            if (!m_lock.aquire()) {
-                perror("Unable to aquire database lock");
-                return false;
-            }
-
-            // Read a list of tables
-            DIR *dp;
-            struct dirent *file;
-
-            if((dp = opendir("./")) == NULL) {
-                perror("Unable to list directory");
-                return false;
-            } else {
-                while((file=readdir(dp)) != NULL) {
-                    if (strcmp(file->d_name+(strlen(file->d_name)-3), "tbl") == 0)
-                        m_tables.push_back(new table(std::string(file->d_name, strlen(file->d_name)-4)));
-                }
-
-                closedir(dp);
-            }
-
-            return true;
-        }
+        bool open();
 
         /** Close database */
-        void close() {
-            for (auto tbl : m_tables) {
-                delete tbl;
-            }
-
-            m_lock.release();
-        }
+        void close();
     private:
         /** Database lock */
         filelock m_lock;
