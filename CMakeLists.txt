@@ -5,15 +5,25 @@
 CMAKE_MINIMUM_REQUIRED ( VERSION 2.8 )
 PROJECT ( deltadb )
 
+OPTION( CONFDIR "Directory which includes configuration files" "/etc/deltadb/" )
+OPTION( DATADIR "Path to database files" "/var/db/deltadb/" )
+
 #------------------------------------------------------------
 # Compiler Setup
 #------------------------------------------------------------
 
 SET ( CMAKE_CXX_FLAGS "-O3 -g --std=c++14 -Wall" )
 
+CONFIGURE_FILE (
+    ${CMAKE_SOURCE_DIR}/src/config.hpp.in
+    ${CMAKE_SOURCE_DIR}/src/config.hpp
+)
+
 #------------------------------------------------------------
 # Include and configure all libraries
 #------------------------------------------------------------
+
+FIND_PACKAGE(Boost REQUIRED filesystem program_options system)
 
 INCLUDE_DIRECTORIES (
     /usr/include
@@ -33,4 +43,8 @@ LINK_DIRECTORIES (
 
 ADD_EXECUTABLE ( deltadbd
     ${CMAKE_SOURCE_DIR}/src/server.cpp
+)
+
+TARGET_LINK_LIBRARIES( deltadbd
+    ${Boost_LIBRARIES}
 )
