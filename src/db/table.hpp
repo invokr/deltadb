@@ -43,7 +43,7 @@ namespace deltadb {
             if (file_exists(frm.c_str())) {
                 from_file();
             } else {
-                create_empty();
+                create();
             }
         }
 
@@ -54,8 +54,18 @@ namespace deltadb {
             }
         }
 
-        bool open() {
+        /** Whether table is open */
+        bool is_open() {
             return m_types != nullptr;
+        }
+
+        /** Set columns for newly created table */
+        void set_columns(col** cols, uint8_t size) {
+            if (m_types == nullptr) {
+                m_types = cols;
+                m_size = size;
+                create();
+            }
         }
     private:
         /** Table name */
@@ -97,34 +107,48 @@ namespace deltadb {
 
             // read fields
             m_size = b.read(8);
+            m_types = (col**)malloc(m_size*sizeof(col*));
             for (uint8_t i = 0; i < m_size; ++i) {
                 m_types[i] = new col();
                 m_types[i]->m_data = b.read(8);
-                b.read_string(32, m_types[i]->m_name);
+
+                b.read_string(31, &m_types[i]->m_name[0]);
 
                 if (b.read_bool()) {
-                    b.read_string(128, m_types[i]->m_comment);
+                    b.read_string(127, &m_types[i]->m_comment[0]);
                 } else {
                     m_types[i]->m_comment[0] = '\0';
                 }
             }
         }
 
-        /** Create an empty table */
-        void create_empty() {
+        /** Create a table */
+        void create() {
             auto frm = m_name+".tbl";
-            bitstream b(m_name.size() + 2);
+
+            bitstream b(m_name.size() + 2 + m_size * 161);
             b.write_bytes(&m_name[0], m_name.size());
             b.write(8, 0);
-            b.write(8, 0);
+            b.write(8, m_size);
+
+            for (int i = 0; i < m_size; ++i) {
+                b.write(8, m_types[i]->m_data);
+                b.write_bytes(m_types[i]->m_name, strlen(m_types[i]->m_name)+1);
+                if (m_types[i]->m_comment[0] != '\0') {
+                    b.write(1, 1);
+                    b.write_bytes(m_types[i]->m_comment, strlen(m_types[i]->m_comment)+1);
+                } else {
+                    b.write(0, 0);
+                }
+            }
 
             FILE* fp = fopen(frm.c_str(), "wb");
             if (!fp) {
                 perror("Unable to open table");
                 return;
             }
-            
-            fwrite(b.buffer(), 1, m_name.size() + 2, fp);
+
+            fwrite(b.buffer(), 1, b.width(), fp);
             fclose(fp);
         }
     };
