@@ -29,6 +29,7 @@
 
 #include "../config.hpp"
 #include "table.hpp"
+#include "types.hpp"
 #include "database.hpp"
 
 namespace deltadb {
@@ -72,7 +73,9 @@ namespace deltadb {
         m_lock.release();
     }
 
-    void database::create(const char* name) {
-        m_tables.push_back(new table(std::string(name)));
+    void database::create(const char* name, col** t, uint32_t len) {
+        table* t2 = new table(std::string(name));
+        t2->set_columns(t, len);
+        m_tables.push_back(t2);
     }
 }

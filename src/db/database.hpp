@@ -30,6 +30,7 @@
 namespace deltadb {
     // forward decl
     class table;
+    struct col;
 
     class database : private boost::noncopyable {
     public:
@@ -48,7 +49,7 @@ namespace deltadb {
         void close();
 
         /** Create a new table */
-        void create(const char* name);
+        void create(const char* name, col** t, uint32_t len);
     private:
         /** Database lock */
         filelock m_lock;
