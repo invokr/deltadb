@@ -27,6 +27,7 @@
 
 #include "../internal/bitfield.hpp"
 #include "../internal/bitstream.hpp"
+#include "table_col.hpp"
 #include "table.hpp"
 
 namespace deltadb {
@@ -63,16 +64,7 @@ namespace deltadb {
         m_size = b.read(8);
         m_types = (col**)malloc(m_size*sizeof(col*));
         for (uint8_t i = 0; i < m_size; ++i) {
-            m_types[i] = new col();
-            m_types[i]->m_data = b.read(8);
-
-            b.read_string(31, &m_types[i]->m_name[0]);
-
-            if (b.read_bool()) {
-                b.read_string(127, &m_types[i]->m_comment[0]);
-            } else {
-                m_types[i]->m_comment[0] = '\0';
-            }
+            m_types[i] = col_read(b);
         }
     }
 
@@ -85,14 +77,7 @@ namespace deltadb {
         b.write(8, m_size);
 
         for (int i = 0; i < m_size; ++i) {
-            b.write(8, m_types[i]->m_data);
-            b.write_bytes(m_types[i]->m_name, strlen(m_types[i]->m_name)+1);
-            if (m_types[i]->m_comment[0] != '\0') {
-                b.write(1, 1);
-                b.write_bytes(m_types[i]->m_comment, strlen(m_types[i]->m_comment)+1);
-            } else {
-                b.write(0, 0);
-            }
+            col_write(b, m_types[i]);
         }
 
         FILE* fp = fopen(frm.c_str(), "wb");

@@ -26,7 +26,7 @@
 #include <cassert>
 
 #include "../internal/filesystem.hpp"
-#include "types.hpp"
+#include "table_col.hpp"
 
 namespace deltadb {
     class table {

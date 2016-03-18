@@ -29,7 +29,7 @@
 
 #include "../config.hpp"
 #include "table.hpp"
-#include "types.hpp"
+#include "table_col.hpp"
 #include "database.hpp"
 
 namespace deltadb {
