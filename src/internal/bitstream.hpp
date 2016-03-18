@@ -286,10 +286,10 @@ namespace deltadb {
             assert(m_mode == mode::io_writer);
             assert(bits <= 32);
 
-            static constexpr uint8_t bitSize = sizeof(word_t) << 3;  // size of a single chunk in bits
-            const uint32_t start = m_pos / bitSize;                  // active chunk
-            const uint32_t end = (m_pos + bits - 1) / bitSize;       // last chunk
-            const uint32_t shift = m_pos % bitSize;                  // shift amount
+            static constexpr uint8_t bitSize = 32;          // size of a single chunk in bits
+            const uint32_t start = m_pos >> 5;              // current active chunk
+            const uint32_t end   = (m_pos + bits - 1) >> 5; // next chunk in case of wrapping
+            const uint32_t shift = m_pos & masks[bitSize];  // shift amount
 
             if (start == end) {
                 m_buffer[start] = (m_buffer[start] & masks[shift]) | (data << shift);
@@ -321,10 +321,10 @@ namespace deltadb {
             assert(m_mode == mode::io_reader);
             assert(bits <= 32);
 
-            static constexpr uint8_t bitSize = sizeof(word_t) << 3;  // size of a single chunk in bits
-            const uint32_t start = m_pos / bitSize;                // current active chunk
-            const uint32_t end   = (m_pos + bits - 1) / bitSize;   // next chunk in case of wrapping
-            const uint32_t shift = m_pos % bitSize;                // shift amount
+            static constexpr uint8_t bitSize = 32;          // size of a single chunk in bits
+            const uint32_t start = m_pos >> 5;              // current active chunk
+            const uint32_t end   = (m_pos + bits - 1) >> 5; // next chunk in case of wrapping
+            const uint32_t shift = m_pos & masks[bitSize];  // shift amount
 
             uint32_t ret; // return value
             if (start == end) {
