@@ -60,6 +60,11 @@ namespace deltadb {
         return (1 << bit);
     }
 
+    /** Set bit at given position */
+    uint64_t bit_set(uint8_t bit, uint64_t v) {
+        return v |= (1 << bit);
+    }
+
     /** This class provides functions to read and write data as a stream of bits. */
     class bitstream {
     public:
