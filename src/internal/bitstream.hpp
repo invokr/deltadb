@@ -50,6 +50,16 @@ namespace deltadb {
         0xfffffffffffff, 0x1fffffffffffff, 0x3fffffffffffff, 0x7fffffffffffff
     };
 
+    /** Returns bits until bit */
+    constexpr uint64_t bits_until(uint8_t bit) {
+        return masks[bit];
+    }
+
+    /** Returns mask for bit at given position */
+    constexpr uint64_t bit_at(uint8_t bit) {
+        return (1 << bit);
+    }
+
     /** This class provides functions to read and write data as a stream of bits. */
     class bitstream {
     public:
