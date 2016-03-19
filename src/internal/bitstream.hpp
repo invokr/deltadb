@@ -61,7 +61,7 @@ namespace deltadb {
     }
 
     /** Set bit at given position */
-    uint64_t bit_set(uint8_t bit, uint64_t v) {
+    inline uint64_t bit_set(uint8_t bit, uint64_t v) {
         return v |= (1 << bit);
     }
 
