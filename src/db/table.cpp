@@ -28,6 +28,7 @@
 #include "../internal/bitfield.hpp"
 #include "../internal/bitstream.hpp"
 #include "table_col.hpp"
+#include "table_row.hpp"
 #include "table.hpp"
 
 namespace deltadb {
@@ -61,9 +62,9 @@ namespace deltadb {
         }
 
         // read fields
-        m_size = b.read(8);
-        m_types = (col**)malloc(m_size*sizeof(col*));
-        for (uint8_t i = 0; i < m_size; ++i) {
+        uint32_t size = b.read(8);
+        m_types.resize(size);
+        for (uint8_t i = 0; i < size; ++i) {
             m_types[i] = col_read(b);
         }
     }
@@ -71,12 +72,12 @@ namespace deltadb {
     void table::create() {
         std::string frm = m_name+".tbl";
 
-        bitstream b(m_name.size() + 2 + m_size * 161);
+        bitstream b(m_name.size() + 2 + m_types.size() * 161);
         b.write_bytes(&m_name[0], m_name.size());
         b.write(8, 0);
-        b.write(8, m_size);
+        b.write(8, m_types.size());
 
-        for (int i = 0; i < m_size; ++i) {
+        for (int i = 0; i < m_types.size(); ++i) {
             col_write(b, m_types[i]);
         }
 

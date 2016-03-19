@@ -32,7 +32,7 @@ namespace deltadb {
     class table {
     public:
         /** Constructor */
-        table(std::string name) : m_name(name), m_types(nullptr), m_size(0) {
+        table(std::string name) : m_name(name) {
             assert(name.size() <= 32);
             auto frm = m_name+".tbl";
 
@@ -45,21 +45,22 @@ namespace deltadb {
 
         /** Destructor */
         ~table() {
-            for (uint32_t i = 0; i < m_size; ++i) {
+            for (uint32_t i = 0; i < m_types.size(); ++i) {
                 delete m_types[i];
             }
         }
 
         /** Whether table is open */
         bool is_open() {
-            return m_types != nullptr;
+            return !m_types.empty();
         }
 
         /** Set columns for newly created table */
         void set_columns(col** cols, uint8_t size) {
-            if (m_types == nullptr) {
-                m_types = cols;
-                m_size = size;
+            if (m_types.empty()) {
+                for (uint32_t i = 0; i < size; ++i) {
+                    m_types.push_back(cols[i]);
+                }
                 create();
             }
         }
@@ -67,9 +68,7 @@ namespace deltadb {
         /** Table name */
         std::string m_name;
         /** Array of column types */
-        col** m_types;
-        /** Number of columns */
-        uint8_t m_size;
+        std::vector<col*> m_types;
 
         /** Read column data from file */
         void from_file();
