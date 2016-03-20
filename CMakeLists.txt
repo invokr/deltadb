@@ -43,6 +43,7 @@ LINK_DIRECTORIES (
 #------------------------------------------------------------
 
 ADD_EXECUTABLE ( deltadbd
+    ${CMAKE_SOURCE_DIR}/src/console/console.cpp
     ${CMAKE_SOURCE_DIR}/src/db/block.cpp
     ${CMAKE_SOURCE_DIR}/src/db/database.cpp
     ${CMAKE_SOURCE_DIR}/src/db/table.cpp
