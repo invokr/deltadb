@@ -26,9 +26,13 @@
 #include <cassert>
 
 #include "../internal/filesystem.hpp"
+#include "block.hpp"
 #include "table_col.hpp"
 
 namespace deltadb {
+    // forward decl
+    struct row;
+
     class table {
     public:
         /** Constructor */
@@ -44,11 +48,7 @@ namespace deltadb {
         }
 
         /** Destructor */
-        ~table() {
-            for (uint32_t i = 0; i < m_types.size(); ++i) {
-                delete m_types[i];
-            }
-        }
+        ~table();
 
         /** Whether table is open */
         bool is_open() {
@@ -64,11 +64,20 @@ namespace deltadb {
                 create();
             }
         }
+
+        /** Write row */
+        void write(row* r);
     private:
         /** Table name */
         std::string m_name;
         /** Array of column types */
         std::vector<col*> m_types;
+        /** Array of cached blocks */
+        std::vector<block*> m_cache;
+        /** Last active block */
+        block* m_block;
+        /** Modified block? */
+        bool m_tainted;
 
         /** Read column data from file */
         void from_file();

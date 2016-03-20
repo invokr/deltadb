@@ -93,5 +93,6 @@ namespace deltadb {
         assert(tbl != m_tables.end());
 
         class table* t = tbl->second;
+        t->write(r);
     }
 }

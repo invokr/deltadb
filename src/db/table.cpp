@@ -32,6 +32,18 @@
 #include "table.hpp"
 
 namespace deltadb {
+    table::~table() {
+        for (uint32_t i = 0; i < m_types.size(); ++i) {
+            delete m_types[i];
+        }
+
+        // write last block
+        if (m_tainted) {
+            std::string blk = m_name+".blk";
+            block_write(blk.c_str(), m_block, true);
+        }
+    }
+
     void table::from_file() {
         std::string frm = m_name+".tbl";
         char l_name[32] = {'\0'};
@@ -67,6 +79,21 @@ namespace deltadb {
         for (uint8_t i = 0; i < size; ++i) {
             m_types[i] = col_read(b);
         }
+
+        // read blocks
+        std::string blk = m_name+".blk";
+
+        uint32_t blocks = block_num(blk.c_str());
+        for (uint32_t i = 1; i < blocks; ++i) {
+            m_cache.push_back(block_read(blk.c_str(), i));
+        }
+
+        m_tainted = true;
+        if (blocks != 0) {
+            m_block = block_read(blk.c_str(), blocks);
+        } else {
+            m_block = new block();
+        }
     }
 
     void table::create() {
@@ -89,5 +116,42 @@ namespace deltadb {
 
         fwrite(b.buffer(), 1, b.width(), fp);
         fclose(fp);
+
+        // create an empty block file
+        std::string blk = m_name+".blk";
+        FILE* fp2 = fopen(blk.c_str(), "wb");
+        fclose(fp2);
+
+        // set active block
+        m_block = new block();
+        m_tainted = false;
+    }
+
+    void table::write(row *r) {
+        // @todo: this code is retarded
+
+        auto rem = r->size() + m_block->pos;
+        if (rem > BLOCK_DSIZE) {
+            // @todo compute crc
+            std::string blk = m_name+".blk";
+
+            if (m_tainted) {
+                block_write(blk.c_str(), m_block, true);
+            } else {
+                block_write(blk.c_str(), m_block);
+            }
+
+            m_cache.push_back(m_block);
+            m_block = new block();
+            m_tainted = false;
+        }
+
+        bitstream b(
+            (bitstream::word_t*)(m_block->data + m_block->pos),
+            BLOCK_DSIZE - rem, bitstream::mode::io_writer
+        );
+
+        row_write(b, r);
+        m_block->pos += r->size();
     }
 }
