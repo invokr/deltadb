@@ -28,6 +28,7 @@ FIND_PACKAGE(Boost REQUIRED filesystem program_options system)
 INCLUDE_DIRECTORIES (
     /usr/include
     /usr/local/include
+    ${CMAKE_SOURCE_DIR}/vendor/variant/include
 )
 
 LINK_DIRECTORIES (
