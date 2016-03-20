@@ -23,33 +23,57 @@
 #include "../db/table_col.hpp"
 #include "../db/table_row.hpp"
 namespace deltadb {
-    /** Print table layout */
-    void print_frm(std::vector<col*>& cols) {
-        auto t2s = [](uint8_t t) {
-            switch (t) {
-            case 0:
-                return "int8";
-            case 1:
-                return "int16";
-            case 2:
-                return "int32";
-            case 3:
-                return "int64";
-            case 4:
-                return "bool";
-            case 5:
-                return "float";
-            case 6:
-                return "double";
-            case 7:
-                return "string";
-            case 8:
-                return "bytes";
-            default:
-                return "Unkown";
-            }
-        };
+    static const char* t2s(uint8_t t) {
+        switch (t) {
+        case 0:
+            return "int8";
+        case 1:
+            return "int16";
+        case 2:
+            return "int32";
+        case 3:
+            return "int64";
+        case 4:
+            return "bool";
+        case 5:
+            return "float";
+        case 6:
+            return "double";
+        case 7:
+            return "string";
+        case 8:
+            return "bytes";
+        default:
+            return "Unkown";
+        }
+    }
 
+    static std::string rv2s(row_value* v) {
+        switch (v->m_type) {
+        case col_int8:
+            return std::to_string(v->m_value.v_u8);
+        case col_int16:
+            return std::to_string(v->m_value.v_u16);
+        case col_int32:
+            return std::to_string(v->m_value.v_u32);
+        case col_float:
+            return std::to_string(v->m_value.v_float);
+        case col_int64:
+            return std::to_string(v->m_value.v_u64);
+        case col_double:
+            return std::to_string(v->m_value.v_double);
+        case col_bool:
+            return std::to_string(v->m_value.v_bool);
+        case col_string:
+            return std::string(v->m_value.v_bytes);
+        case col_bytes:
+            return std::string("binary");
+        default:
+            return "Unkown";
+        }
+    }
+
+    void print_frm(std::vector<col*>& cols) {
         ascii_table a;
 
         a.append("Name", "Type", "Comment");
@@ -61,8 +85,18 @@ namespace deltadb {
         a.print({true, true, true});
     }
 
-    /** Print given rows */
-    void print_rows(std::vector<col*>& cols, std::vector<row*>& rows) {
+    void print_row(std::vector<col*>& cols, row* r) {
+        ascii_table a;
+        a.append("Field", "Value");
 
+        for (uint32_t i = 0; i < cols.size(); ++i) {
+            if (r->has(i)) {
+                a.append(std::string(cols[i]->m_name), rv2s(r->get(i)));
+            } else {
+                a.append(std::string(cols[i]->m_name), "Inherited");
+            }
+        }
+
+        a.print({true, true, false});
     }
 } /* deltadb */

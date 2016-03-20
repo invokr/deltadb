@@ -33,7 +33,7 @@ namespace deltadb {
     void print_frm(std::vector<col*>& cols);
 
     /** Print given rows */
-    void print_rows(std::vector<col*>& cols, std::vector<row*>& rows);
+    void print_row(std::vector<col*>& cols, row* r);
 } /* deltadb */
 
 #endif /* DELTADB_CONSOLE_CONSOLE_HPP */
