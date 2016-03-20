@@ -22,15 +22,20 @@
 #ifndef DELTADB_DB_BLOCK_HPP
 #define DELTADB_DB_BLOCK_HPP
 
+/** Block datasize */
+#define BLOCK_DSIZE 131064
+
 namespace deltadb {
     /** 128kb data blocks */
     struct block {
         /** Block crc */
         uint32_t crc;
-        /** Number of rows in block */
-        uint32_t rows;
+        /** Last written pos */
+        uint32_t pos;
         /** Block data */
-        char data[131064];
+        char data[BLOCK_DSIZE];
+
+        block() : crc(0), pos(0) {}
     };
 
     /** Load block from data file */
