@@ -23,6 +23,7 @@
 #include <vector>
 #include <cstring>
 #include <cstdio>
+#include <cassert>
 
 #include <dirent.h>
 #include <unistd.h>
@@ -55,8 +56,10 @@ namespace deltadb {
             return false;
         } else {
             while((file=readdir(dp)) != NULL) {
-                if (strcmp(file->d_name+(strlen(file->d_name)-3), "tbl") == 0)
-                    m_tables.push_back(new table(std::string(file->d_name, strlen(file->d_name)-4)));
+                if (strcmp(file->d_name+(strlen(file->d_name)-3), "tbl") == 0) {
+                    auto tbl_name = std::string(file->d_name, strlen(file->d_name)-4);
+                    m_tables[tbl_name] = new table(tbl_name);
+                }
             }
 
             closedir(dp);
@@ -66,10 +69,11 @@ namespace deltadb {
     }
 
     void database::close() {
-        for (auto tbl : m_tables) {
-            delete tbl;
+        for (auto &tbl : m_tables) {
+            delete tbl.second;
         }
 
+        m_tables.clear();
         m_lock.release();
     }
 
@@ -81,6 +85,13 @@ namespace deltadb {
 
         table* t2 = new table(std::string(name));
         t2->set_columns(t, len);
-        m_tables.push_back(t2);
+        m_tables[std::string(name)] = t2;
+    }
+
+    void database::write_row(const char* table, row* r) {
+        auto tbl = m_tables.find(table);
+        assert(tbl != m_tables.end());
+
+        class table* t = tbl->second;
     }
 }

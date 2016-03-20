@@ -22,7 +22,10 @@
 #ifndef DELTADB_DB_DATATBASE_HPP
 #define DELTADB_DB_DATATBASE_HPP
 
+#include <string>
+#include <unordered_map>
 #include <vector>
+
 #include <boost/noncopyable.hpp>
 
 #include "../internal/filesystem.hpp"
@@ -31,6 +34,7 @@ namespace deltadb {
     // forward decl
     class table;
     struct col;
+    struct row;
 
     class database : private boost::noncopyable {
     public:
@@ -50,11 +54,14 @@ namespace deltadb {
 
         /** Create a new table */
         void create(const char* name, col** t, uint32_t len);
+
+        /** Append a new row to the table */
+        void write_row(const char* table, row* r);
     private:
         /** Database lock */
         filelock m_lock;
         /** List of tables */
-        std::vector<table*> m_tables;
+        std::unordered_map<std::string, table*> m_tables;
     };
 } /* deltadb */
 
